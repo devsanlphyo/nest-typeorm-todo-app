@@ -1,47 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTodoDto } from './dto/createTodo.dto';
 import { UpdateTodoDto } from './dto/updateTodo.dto';
-
-type Todo = {
-  id: number;
-  title: string;
-};
-
-let TodosList: Todo[] = [
-  {
-    id: 1,
-    title: 'Hello world',
-  },
-  {
-    id: 2,
-    title: 'I am good',
-  },
-  {
-    id: 3,
-    title: 'Yay, I am working',
-  },
-];
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Todo } from './entities/todo.entity';
 
 @Injectable()
 export class TodoService {
-  getAll() {
+  constructor(
+    @InjectRepository(Todo)
+    private todoRepository: Repository<Todo>,
+  ) {}
+
+  async getAll() {
+    const todosList = await this.todoRepository.find();
+
     return {
       IsSuccess: true,
       Message: 'Fetching all todos success',
-      TodosList,
+      todosList,
     };
   }
 
-  getTodoDetail(id: number) {
-    console.log('getTodoDetail: ', id);
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
-    const existingTodo = TodosList.find((t) => t.id === id);
+  async getTodoDetail(id: number) {
+    const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
         IsSuccess: false,
@@ -56,20 +38,8 @@ export class TodoService {
     };
   }
 
-  createTodo(dto: CreateTodoDto) {
-    if (!dto.title) {
-      return {
-        IsSuccess: false,
-        Message: 'title is required',
-      };
-    }
-
-    const newTodo: Todo = {
-      id: TodosList.length + 1,
-      title: dto.title,
-    };
-
-    TodosList.push(newTodo);
+  async createTodo(dto: CreateTodoDto) {
+    await this.todoRepository.save({ title: dto.title });
 
     return {
       IsSuccess: true,
@@ -77,15 +47,8 @@ export class TodoService {
     };
   }
 
-  deleteTodo(id: number) {
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
-    const existingTodo = TodosList.find((t) => t.id === id);
+  async deleteTodo(id: number) {
+    const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
         IsSuccess: false,
@@ -93,7 +56,7 @@ export class TodoService {
       };
     }
 
-    TodosList = TodosList.filter((t) => t.id !== id);
+    await this.todoRepository.remove(existingTodo);
 
     return {
       IsSuccess: true,
@@ -101,15 +64,8 @@ export class TodoService {
     };
   }
 
-  updateTodo(id: number, dto: UpdateTodoDto) {
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
-    const existingTodo = TodosList.find((t) => t.id === id);
+  async updateTodo(id: number, dto: UpdateTodoDto) {
+    const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
         IsSuccess: false,
@@ -119,6 +75,7 @@ export class TodoService {
 
     if (dto.title) {
       existingTodo.title = dto.title;
+      await this.todoRepository.save(existingTodo);
 
       return {
         IsSuccess: true,
