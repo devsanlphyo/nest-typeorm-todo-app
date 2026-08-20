@@ -23,13 +23,6 @@ export class TodoService {
   }
 
   async getTodoDetail(id: number) {
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
     const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
@@ -46,13 +39,6 @@ export class TodoService {
   }
 
   async createTodo(dto: CreateTodoDto) {
-    if (!dto.title) {
-      return {
-        IsSuccess: false,
-        Message: 'title is required',
-      };
-    }
-
     await this.todoRepository.save({ title: dto.title });
 
     return {
@@ -62,13 +48,6 @@ export class TodoService {
   }
 
   async deleteTodo(id: number) {
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
     const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
@@ -86,13 +65,6 @@ export class TodoService {
   }
 
   async updateTodo(id: number, dto: UpdateTodoDto) {
-    if (!id) {
-      return {
-        IsSuccess: false,
-        Message: 'id is required',
-      };
-    }
-
     const existingTodo = await this.todoRepository.findOneBy({ id });
     if (!existingTodo) {
       return {
